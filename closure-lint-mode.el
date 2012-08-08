@@ -48,19 +48,24 @@
   :type 'string
   :group 'closure-lint)
 
+(defcustom closure-lint-gjs-lint-params "--strict"
+  "Parameters to Linter program."
+  :type 'string
+  :group 'closure-lint)
+
 (defcustom closure-lint-fix-js-style "fixjsstyle"
   "The name of the Closure Fix JS Style program."
   :type 'string
   :group 'closure-lint)
 
 (defvar closure-lint-mode-map
-  (let ((map (make-sparse-keymap)))    
+  (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-e" 'flymake-display-err-menu-for-current-line)
     (define-key map "\C-c\C-f" 'closure-lint-fix-buffer)
     map)
   "The keymap used in `closure-lint-mode buffers.")
 
-;;;###autoload 
+;;;###autoload
 (define-minor-mode closure-lint-mode
   "Closure Lint mode.
      With no argument, this command toggles the mode.
@@ -74,7 +79,7 @@
 (defun closure-lint-find-file-hook ()
   "Hook function to enable closure-lint-mode and flymake-mode if
 the current buffer's file is a Javascript file."
-  (when (string-match "\\.js$" buffer-file-name)    
+  (when (string-match "\\.js$" buffer-file-name)
     (closure-lint-mode 't)
     (flymake-mode 't)))
 
@@ -105,12 +110,16 @@ the current buffer's file is a Javascript file."
          (local-file (file-relative-name
                       temp-file
                       (file-name-directory buffer-file-name))))
-    (list closure-lint-gjs-lint (list (expand-file-name local-file)))))
+    (list closure-lint-gjs-lint
+	  (append
+	   (split-string closure-lint-gjs-lint-params)
+	   (list (expand-file-name local-file))))))
 
 (add-hook 'find-file-hooks 'closure-lint-find-file-hook)
 
 (add-to-list 'flymake-allowed-file-name-masks
-             '(".+\\.js$" closure-lint-flymake-init flymake-simple-cleanup flymake-get-real-file-name))
+             '(".+\\.js$" closure-lint-flymake-init
+	       flymake-simple-cleanup flymake-get-real-file-name))
 
 (add-to-list 'flymake-err-line-patterns
              '("^Line \\([[:digit:]]+\\), E:\\([[:digit:]]+\\):\\(.+\\)$" nil 1 nil 3))
